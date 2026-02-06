@@ -1,28 +1,27 @@
 # Stock Management App
 
-Application web pour gérer les produits en stock.
-
-## Description
-Cette application permet d'ajouter, modifier et supprimer des produits dans un système de gestion de stock.
-
-## Installation
-1. Télécharger ou cloner le projet
-2. Installer XAMPP ou WAMP
-3. Copier le projet dans le dossier htdocs
-4. Lancer Apache et MySQL
-5. Ouvrir dans le navigateur :
-   http://localhost/stock-management-app
+Application web PHP + MySQL pour gérer les produits en stock.
 
 ## Fonctionnalités
-- Ajouter un produit
-- Modifier un produit
-- Supprimer un produit
-- Afficher la liste des stocks
+- Ajouter, modifier et supprimer des produits
+- Afficher le tableau de bord des stocks
+- Exporter les données en Excel
 
-## Technologies utilisées
-- PHP
-- HTML
+## Technologies
+- PHP, HTML, CSS
 - MySQL
+- XAMPP / WAMP
+
+## Structure
+- `article.php`, `stock.php` → gestion des produits
+- `dashboard.php` → tableau de bord
+- `export_excel.php` → export des données
+
+## Installation
+1. Copier le projet dans `htdocs` (XAMPP/WAMP)
+2. Lancer Apache et MySQL
+3. Créer la base de données MySQL
+4. Ouvrir `http://localhost/stock-management-app` dans le navigateur
 
 ## Auteur
 Aya Azouzi
