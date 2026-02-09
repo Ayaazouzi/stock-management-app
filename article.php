@@ -31,35 +31,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmtArticles = $conn->prepare("INSERT INTO articles (nom, quantite, prix, id_categorie) VALUES (?, ?, ?, ?)");
         if ($stmtArticles->execute([$nom, $quantite, $prix, $id_categorie])) {
-              // Récupère l'ID de l'article qui vient d’être inséré
+              // Récupère l'ID de l'article qui vient d'être inséré
             $id_article = $conn->lastInsertId();
-// Vérifie si un stock existe déjà pour cet article
-            $stmtCheckStock = $conn->prepare("SELECT id_stock FROM stock WHERE id_article = ?");
-            $stmtCheckStock->execute([$id_article]);
-            $existingStock = $stmtCheckStock->fetch();
-  // Si le stock existe, met à jour la quantité en l’augmentant
-            if ($existingStock) {
-                $stmtUpdateStock = $conn->prepare("UPDATE stock SET quantite = quantite + ? WHERE id_article = ?");
-                if ($stmtUpdateStock->execute([$quantite, $id_article])) {
-                    $message = "Article ajouté et stock mis à jour avec succès!";
-                    $type = "success";
+            
+            // Vérifier les colonnes disponibles dans la table stock
+            try {
+                $stmtCheckStock = $conn->prepare("SELECT * FROM stock WHERE id_article = ?");
+                $stmtCheckStock->execute([$id_article]);
+                $existingStock = $stmtCheckStock->fetch();
+                
+                if ($existingStock) {
+                    // Si le stock existe, met à jour la quantité en stock
+                    // Utiliser quantite_stock au lieu de quantite
+                    $stmtUpdateStock = $conn->prepare("UPDATE stock SET quantite_stock = quantite_stock + ? WHERE id_article = ?");
+                    if ($stmtUpdateStock->execute([$quantite, $id_article])) {
+                        $message = "Article ajouté et stock mis à jour avec succès!";
+                        $type = "success";
+                    } else {
+                        $message = "Une erreur s'est produite lors de la mise à jour du stock.";
+                        $type = "error";
+                    }
                 } else {
-                    $message = "Une erreur s'est produite lors de la mise à jour du stock.";
-                    $type = "error";
+                    // Si le stock n'existe pas, crée une nouvelle entrée dans la table "stock"
+                    // Utiliser quantite_stock au lieu de quantite
+                    $stmtStock = $conn->prepare("INSERT INTO stock (id_article, quantite_stock) VALUES (?, ?)");
+                    if ($stmtStock->execute([$id_article, $quantite])) {
+                        $message = "Article et stock ajoutés avec succès!";
+                        $type = "success";
+                    } else {
+                        $message = "Une erreur s'est produite lors de l'ajout du stock.";
+                        $type = "error";
+                    }
                 }
-            } else {
-                 // Si le stock n'existe pas, crée une nouvelle entrée dans la table "stock"
-                $stmtStock = $conn->prepare("INSERT INTO stock (id_article, quantite) VALUES (?, ?)");
-                if ($stmtStock->execute([$id_article, $quantite])) {
-                    $message = "Article et stock ajoutés avec succès!";
-                    $type = "success";
-                } else {
-                    $message = "Une erreur s'est produite lors de l'ajout du stock.";
-                    $type = "error";
-                }
+            } catch (PDOException $e) {
+                // Si erreur avec la table stock, on continue quand même
+                $message = "Article ajouté avec succès! (Erreur stock: " . $e->getMessage() . ")";
+                $type = "warning";
             }
         } else {
-                       // Si l’insertion de l’article a échoué
+            // Si l'insertion de l'article a échoué
             $message = "Une erreur s'est produite lors de l'ajout de l'article.";
             $type = "error";
         }
@@ -76,14 +86,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $conn->prepare("UPDATE articles SET nom = ?, quantite = ?, prix = ?, id_categorie = ? WHERE id_article = ?");
          // Exécute la requête avec les nouvelles données
         if ($stmt->execute([$nom, $quantite, $prix, $id_categorie, $id_article])) {
-            // Si l'article est modifié avec succès, met à jour aussi le stock correspondan
-            $stmtStock = $conn->prepare("UPDATE stock SET quantite = ? WHERE id_article = ?");
-            if ($stmtStock->execute([$quantite, $id_article])) {
-                $message = "Article et stock modifiés avec succès!";
-                $type = "success";
-            } else {
-                $message = "Une erreur s'est produite lors de la modification du stock.";
-                $type = "error";
+            // Si l'article est modifié avec succès, met à jour aussi le stock correspondant
+            try {
+                // Utiliser quantite_stock au lieu de quantite
+                $stmtStock = $conn->prepare("UPDATE stock SET quantite_stock = ? WHERE id_article = ?");
+                if ($stmtStock->execute([$quantite, $id_article])) {
+                    $message = "Article et stock modifiés avec succès!";
+                    $type = "success";
+                } else {
+                    $message = "Article modifié avec succès! (Stock non mis à jour)";
+                    $type = "success";
+                }
+            } catch (PDOException $e) {
+                $message = "Article modifié avec succès! (Erreur stock: " . $e->getMessage() . ")";
+                $type = "warning";
             }
         } else {
             $message = "Une erreur s'est produite lors de la modification de l'article.";
@@ -94,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Suppression d'un article
 if (isset($_GET['supprimer'])) {
-    // Vérifie si un paramètre "supprimer" est présent dans l’URL (via GET)
+    // Vérifie si un paramètre "supprimer" est présent dans l'URL (via GET)
     $id_article = $_GET['supprimer'];
      // Prépare une requête pour supprimer l'article correspondant
 
@@ -563,7 +579,7 @@ $categories = $stmtCategories->fetchAll(PDO::FETCH_ASSOC);
             <label for="id_categorie" class="form-label">Catégorie</label>
             <select class="form-select" id="id_categorie" name="id_categorie" required>
                 <?php foreach ($categories as $categorie) { ?>
-                    <option value="<?php echo $categorie['id_categorie']; ?>"><?php echo $categorie['nom']; ?></option>
+                    <option value="<?php echo htmlspecialchars($categorie['id_categorie'] ?? ''); ?>"><?php echo htmlspecialchars($categorie['nom'] ?? ''); ?></option>
                 <?php } ?>
             </select>
         </div>
@@ -585,23 +601,23 @@ $categories = $stmtCategories->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($articles as $article) { ?>
                 <tr>
                     <td>
-                        <?php echo $article['nom']; ?>
+                        <?php echo htmlspecialchars($article['nom'] ?? ''); ?>
                     </td>
                     <td>
-                        <?php echo $article['quantite']; ?>
+                        <?php echo htmlspecialchars($article['quantite'] ?? ''); ?>
                     </td>
                     <td>
-                        <?php echo $article['prix']; ?>
+                        <?php echo htmlspecialchars($article['prix'] ?? ''); ?>
                     </td>
                     <td>
-                        <?php echo $article['categorie_nom']; ?>
+                        <?php echo htmlspecialchars($article['categorie_nom'] ?? ''); ?>
                     </td>
                     <td>
                         <a href="#" class="btn-warning" data-bs-toggle="modal" data-bs-target="#editModal"
-                            onclick="populateEditModal(<?php echo $article['id_article']; ?>, '<?php echo $article['nom']; ?>', <?php echo $article['quantite']; ?>, <?php echo $article['prix']; ?>, <?php echo $article['id_categorie']; ?>)">
+                            onclick="populateEditModal(<?php echo htmlspecialchars($article['id_article'] ?? ''); ?>, '<?php echo htmlspecialchars($article['nom'] ?? ''); ?>', <?php echo htmlspecialchars($article['quantite'] ?? ''); ?>, <?php echo htmlspecialchars($article['prix'] ?? ''); ?>, <?php echo htmlspecialchars($article['id_categorie'] ?? ''); ?>)">
                             Modifier
                         </a>
-                        <a href="?supprimer=<?php echo $article['id_article']; ?>" class="btn-danger">Supprimer</a>
+                        <a href="?supprimer=<?php echo htmlspecialchars($article['id_article'] ?? ''); ?>" class="btn-danger">Supprimer</a>
                     </td>
                 </tr>
             <?php } ?>
@@ -635,7 +651,7 @@ $categories = $stmtCategories->fetchAll(PDO::FETCH_ASSOC);
                             <label for="edit_id_categorie" class="form-label">Catégorie</label>
                             <select class="form-select" id="edit_id_categorie" name="id_categorie" required>
                                 <?php foreach ($categories as $categorie) { ?>
-                                    <option value="<?php echo $categorie['id_categorie']; ?>"><?php echo $categorie['nom']; ?></option>
+                                    <option value="<?php echo htmlspecialchars($categorie['id_categorie'] ?? ''); ?>"><?php echo htmlspecialchars($categorie['nom'] ?? ''); ?></option>
                                 <?php } ?>
                             </select>
                         </div>

@@ -230,8 +230,8 @@ if (isset($_GET['edit'])) {
 
 <!-- Formulaire d'ajout ou d'édition -->
 <form method="POST" action="">
-    <input type="text" name="nom" placeholder="Nom" value="<?= isset($editUser) ? htmlspecialchars($editUser['nom']) : '' ?>" required>
-    <input type="text" name="prenom" placeholder="Prénom" value="<?= isset($editUser) ? htmlspecialchars($editUser['prenom']) : '' ?>" required>
+    <input type="text" name="nom" placeholder="Nom" value="<?= isset($editUser) ? htmlspecialchars($editUser['nom'] ?? '') : '' ?>" required>
+    <input type="text" name="prenom" placeholder="Prénom" value="<?= isset($editUser) ? htmlspecialchars($editUser['prenom'] ?? '') : '' ?>" required>
     <input type="password" name="password" placeholder="Mot de passe" required>
     <select name="role">
         <option value="chef" <?= isset($editUser) && $editUser['role'] === 'chef' ? 'selected' : '' ?>>Chef</option>
@@ -263,11 +263,11 @@ if (isset($_GET['edit'])) {
     <tbody>
         <?php foreach ($users as $user): ?>
             <tr>
-                <td><?= htmlspecialchars($user['id_user']) ?></td>
-                <td><?= htmlspecialchars($user['nom']) ?></td>
-                <td><?= htmlspecialchars($user['prenom']) ?></td>
-                <td><?= htmlspecialchars($user['role']) ?></td>
-                <td><?= htmlspecialchars($user['created_at']) ?></td>
+                <td><?= htmlspecialchars($user['id_user'] ?? '') ?></td>
+                <td><?= htmlspecialchars($user['nom'] ?? '') ?></td>
+                <td><?= htmlspecialchars($user['prenom'] ?? '') ?></td>
+                <td><?= htmlspecialchars($user['role'] ?? '') ?></td>
+                <td><?= htmlspecialchars($user['created_at'] ?? '') ?></td>
                 <td class="actions">
                     <a href="?edit=<?= $user['id_user'] ?>">Modifier</a>
                     <a href="?delete=<?= $user['id_user'] ?>" onclick="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?')">Supprimer</a>

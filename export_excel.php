@@ -4,7 +4,6 @@ require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-
 $host = "localhost";
 $dbname = "gestion de stock cofat";
 $username = "root";
@@ -15,23 +14,23 @@ try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Récupérer les données des stocks avec une jointure sur la table articles
+    // CORRECTION: Requête adaptée aux colonnes existantes dans votre table stock
     $stmtStock = $conn->query("
         SELECT 
             stock.id_stock, 
             articles.nom AS article_name, 
+            articles.prix AS prix_article,
+            articles.quantite AS quantite_article,
             stock.quantite_stock, 
-            stock.date_ajout, 
-            stock.nom_emplacement, 
-            stock.quantite
+            stock.nom_emplacement
         FROM stock 
         JOIN articles ON stock.id_article = articles.id_article
+        ORDER BY stock.id_stock
     ");
-    // Récupération des résultats sous forme de tableau associatif
+    
     $stock = $stmtStock->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    // Affichage d'une erreur en cas d'échec de connexion à la base
     echo "Erreur de connexion : " . $e->getMessage();
     exit;
 }
@@ -40,34 +39,50 @@ try {
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
-// Ajouter les en-têtes de colonnes
+// CORRECTION: En-têtes adaptés aux colonnes disponibles
 $sheet->setCellValue('A1', 'ID Stock');
 $sheet->setCellValue('B1', 'Article');
-$sheet->setCellValue('C1', 'Quantité Stock');
-$sheet->setCellValue('D1', 'Date d\'Ajout');
-$sheet->setCellValue('E1', 'Nom Emplacement');
-$sheet->setCellValue('F1', 'Quantité');
+$sheet->setCellValue('C1', 'Prix Article (TND)');
+$sheet->setCellValue('D1', 'Quantité Article');
+$sheet->setCellValue('E1', 'Quantité en Stock');
+$sheet->setCellValue('F1', 'Emplacement');
 
-// Remplir les données dans le fichier Excel
-$row = 2; // Ligne de départ pour les données
+// Style pour les en-têtes
+$headerStyle = [
+    'font' => ['bold' => true, 'size' => 12],
+    'fill' => [
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '007bff']
+    ],
+    'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]
+];
+$sheet->getStyle('A1:F1')->applyFromArray($headerStyle);
+
+// Remplir les données
+$row = 2;
 foreach ($stock as $stockItem) {
     $sheet->setCellValue('A' . $row, $stockItem['id_stock']);
     $sheet->setCellValue('B' . $row, $stockItem['article_name']);
-    $sheet->setCellValue('C' . $row, $stockItem['quantite_stock']);
-    $sheet->setCellValue('D' . $row, $stockItem['date_ajout']);
-    $sheet->setCellValue('E' . $row, $stockItem['nom_emplacement']);
-    $sheet->setCellValue('F' . $row, $stockItem['quantite']);
+    $sheet->setCellValue('C' . $row, $stockItem['prix_article']);
+    $sheet->setCellValue('D' . $row, $stockItem['quantite_article']);
+    $sheet->setCellValue('E' . $row, $stockItem['quantite_stock']);
+    $sheet->setCellValue('F' . $row, $stockItem['nom_emplacement']);
     $row++;
 }
 
-// Générer le fichier Excel et l'envoyer comme téléchargement
-$writer = new Xlsx($spreadsheet);
-$filename = 'stock_data.xlsx'; // Nom du fichier à télécharger
+// Auto-dimensionner les colonnes
+foreach(range('A','F') as $col) {
+    $sheet->getColumnDimension($col)->setAutoSize(true);
+}
 
-// Définition des en-têtes HTTP pour forcer le téléchargement du fichier
+// Générer le fichier Excel
+$writer = new Xlsx($spreadsheet);
+$filename = 'stock_export_' . date('Y-m-d_H-i-s') . '.xlsx';
+
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="' . $filename . '"');
 header('Cache-Control: max-age=0');
-// Envoie le fichier généré directement au navigateur
+
 $writer->save('php://output');
+exit;
 ?>

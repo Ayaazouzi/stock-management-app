@@ -10,22 +10,27 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Récupérer les catégories et les articles avec leurs stocks
-$categoriesQuery = "SELECT * FROM categories";
+// CORRECTION: Requête SQL améliorée pour récupérer les articles avec leurs stocks
 $articlesStockQuery = "
-    SELECT a.id_article, a.nom AS article_nom, a.prix, a.quantite AS article_quantite, a.nom, s.quantite_stock, s.nom_emplacement
+    SELECT 
+        a.id_article, 
+        a.nom AS article_nom, 
+        a.prix, 
+        a.quantite AS article_quantite,
+        COALESCE(s.id_stock, '') AS id_stock,
+        COALESCE(s.quantite_stock, 0) AS quantite_stock, 
+        COALESCE(s.nom_emplacement, 'Non défini') AS nom_emplacement
     FROM articles a
     LEFT JOIN stock s ON a.id_article = s.id_article
+    ORDER BY a.id_article
 ";
 
-$categories = $conn->query($categoriesQuery);
 $articlesStock = $conn->query($articlesStockQuery);
 
 // Traitement de la suppression d'un article
 if (isset($_POST['delete_article_id'])) {
-    $delete_article_id = $_POST['delete_article_id'];
+    $delete_article_id = intval($_POST['delete_article_id']);
     
-    // Commencer une transaction pour garantir la cohérence de la base de données
     $conn->begin_transaction();
 
     try {
@@ -41,32 +46,43 @@ if (isset($_POST['delete_article_id'])) {
         $stmt->bind_param("i", $delete_article_id);
         $stmt->execute();
         
-        // Commit de la transaction
         $conn->commit();
         
-        // Redirection après suppression
         header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
     } catch (Exception $e) {
-        // Annuler la transaction en cas d'erreur
         $conn->rollback();
         echo "Erreur lors de la suppression : " . $e->getMessage();
     }
 }
 
-// Traitement de la mise à jour d'un article (modification de la quantité et emplacement)
+// CORRECTION: Traitement de la mise à jour amélioré
 if (isset($_POST['edit_article_id'])) {
-    $edit_article_id = $_POST['edit_article_id'];
-    $new_quantity = $_POST['new_quantity'];
-    $new_location = $_POST['new_location'];
+    $edit_article_id = intval($_POST['edit_article_id']);
+    $new_quantity = intval($_POST['new_quantity']);
+    $new_location = trim($_POST['new_location']);
 
-    // Mise à jour de la quantité en stock et de l'emplacement
-    $updateStockQuery = "UPDATE stock SET quantite_stock = ?, nom_emplacement = ? WHERE id_article = ?";
-    $stmt = $conn->prepare($updateStockQuery);
-    $stmt->bind_param("isi", $new_quantity, $new_location, $edit_article_id);
+    // Vérifier si un enregistrement existe déjà dans stock
+    $checkQuery = "SELECT id_stock FROM stock WHERE id_article = ?";
+    $stmt = $conn->prepare($checkQuery);
+    $stmt->bind_param("i", $edit_article_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        // UPDATE si l'enregistrement existe
+        $updateStockQuery = "UPDATE stock SET quantite_stock = ?, nom_emplacement = ? WHERE id_article = ?";
+        $stmt = $conn->prepare($updateStockQuery);
+        $stmt->bind_param("isi", $new_quantity, $new_location, $edit_article_id);
+    } else {
+        // INSERT si l'enregistrement n'existe pas
+        $updateStockQuery = "INSERT INTO stock (id_article, quantite_stock, nom_emplacement) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($updateStockQuery);
+        $stmt->bind_param("iis", $edit_article_id, $new_quantity, $new_location);
+    }
+    
     $stmt->execute();
     
-    // Redirection après mise à jour
     header('Location: ' . $_SERVER['PHP_SELF']);
     exit;
 }
@@ -87,7 +103,6 @@ if (isset($_POST['edit_article_id'])) {
             background-color: #343a40;
             color: white;
             padding: 10px;
-            /* Réduit le padding global pour rapprocher le contenu du haut */
             height: 100vh;
             position: fixed;
             left: 0;
@@ -95,13 +110,9 @@ if (isset($_POST['edit_article_id'])) {
             width: 10%;
             display: flex;
             flex-direction: column;
-            /* Aligner les éléments en colonne */
             align-items: flex-start;
-            /* Alignement à gauche */
             justify-content: flex-start;
-            /* Alignement en haut */
             gap: 10px;
-            /* Espacement minimal entre les éléments */
         }
 
         .sidebar h2 {
@@ -109,9 +120,7 @@ if (isset($_POST['edit_article_id'])) {
             font-size: 70px;
             font-weight: bold;
             margin: 0;
-            /* Supprime la marge par défaut */
             padding: 0;
-            /* Supprime le padding éventuel */
         }
 
         .sidebar a {
@@ -132,43 +141,25 @@ if (isset($_POST['edit_article_id'])) {
             padding: 30px;
         }
 
-
-
         .tables-container {
             display: flex;
             gap: 20px;
-            /* Espacement entre les tables */
             justify-content: space-between;
-            /* Espacement égal entre les tables */
         }
 
         table {
             font-size: 4rem;
-            /* Augmenter la taille de la police */
             padding: 30px;
-            /* Ajouter plus d'espace autour de la table */
             width: 90%;
-            /* Utilisation d'une largeur plus large et plus fluide */
             max-width: 90%;
-            /* Utilisation de toute la largeur disponible */
             margin: 0 auto;
-            /* Centrer la table */
-
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             overflow-x: auto;
-            /* Permet un défilement horizontal si nécessaire */
             position: absolute;
-            /* Position absolue */
             top: 900px;
-            /* Vous pouvez ajuster la position verticale */
             margin-left: -1700px;
-            /* Place le formulaire à 20px du bord droit */
-
-
         }
-
-
 
         table th,
         table td {
@@ -176,17 +167,13 @@ if (isset($_POST['edit_article_id'])) {
             text-align: center;
             border-bottom: 2px solid #ddd;
             font-size: 4rem;
-
-
         }
-        
 
         table th {
             background-color: #007bff !important;
             font-weight: bold;
-            color:white;
+            color: white;
         }
-
 
         h1 {
             font-size: 6.5rem;
@@ -242,59 +229,50 @@ if (isset($_POST['edit_article_id'])) {
         button.copyCategory,
         button.deleteCategory {
             padding: 15px 30px;
-            /* Augmentation du padding pour les boutons */
             width: auto;
             margin: 10px;
             font-size: 4.5rem;
-            /* Augmentation de la taille des boutons */
         }
 
         button.btn-danger,
         button.btn-info,
         button.btn-warning {
             padding: 15px 30px;
-            /* Augmentation du padding pour les boutons */
             width: auto;
             margin: 20px;
             font-size: 2.5rem;
-            /* Augmentation de la taille des boutons */
         }
 
-
-        /* Classes personnalisées pour SweetAlert */
         .swal2-popup {
             font-size: 3rem;
-            /* Augmente la taille de la police dans la popup */
             max-width: 2000px;
-            /* Définit une largeur plus grande */
             padding: 2rem;
-            /* Ajoute un espacement interne plus grand */
         }
 
         .swal2-title {
             font-size: 5rem;
-            /* Augmente la taille du titre */
             font-weight: bold;
-            /* Rend le titre plus visible */
         }
 
         .swal2-content {
             font-size: 3rem;
-            /* Ajuste la taille du contenu */
         }
 
         .swal2-confirm {
             font-size: 2rem;
-            /* Augmente la taille du bouton de confirmation */
             padding: 0.8rem 1.5rem;
-            /* Ajuste l'espacement interne du bouton */
         }
 
         .swal2-cancel {
             font-size: 2rem;
-            /* Augmente la taille du bouton d'annulation */
             padding: 0.8rem 1.5rem;
-            /* Ajuste l'espacement interne du bouton */
+        }
+
+        /* CORRECTION: Ajout de styles pour les inputs SweetAlert */
+        .swal2-input {
+            font-size: 2.5rem !important;
+            padding: 1rem !important;
+            margin: 1rem 0 !important;
         }
     </style>
 </head>
@@ -327,23 +305,37 @@ if (isset($_POST['edit_article_id'])) {
                 </tr>
             </thead>
             <tbody>
-                <?php while ($articleStock = $articlesStock->fetch_assoc()) { ?>
+                <?php 
+                // CORRECTION: Vérification si des résultats existent
+                if ($articlesStock->num_rows > 0) {
+                    while ($articleStock = $articlesStock->fetch_assoc()) { 
+                ?>
                     <tr>
-                        <td><?php echo $articleStock['id_article']; ?></td>
-                        <td><?php echo $articleStock['article_nom']; ?></td>
-                        <td><?php echo $articleStock['prix']; ?> TND</td>
-                        <td><?php echo $articleStock['article_quantite']; ?></td>
-                        <td><?php echo $articleStock['quantite_stock']; ?></td>
-                        <td><?php echo $articleStock['nom_emplacement']; ?></td>
+                        <td><?php echo htmlspecialchars($articleStock['id_article']); ?></td>
+                        <td><?php echo htmlspecialchars($articleStock['article_nom']); ?></td>
+                        <td><?php echo htmlspecialchars($articleStock['prix']); ?> TND</td>
+                        <td><?php echo htmlspecialchars($articleStock['article_quantite']); ?></td>
+                        <td><?php echo htmlspecialchars($articleStock['quantite_stock']); ?></td>
+                        <td><?php echo htmlspecialchars($articleStock['nom_emplacement']); ?></td>
                         <td>
-                            <button class="btn btn-warning editArticle" data-id="<?php echo $articleStock['id_article']; ?>"
+                            <button class="btn btn-warning editArticle" 
+                                data-id="<?php echo $articleStock['id_article']; ?>"
                                 data-quantity="<?php echo $articleStock['quantite_stock']; ?>"
-                                data-location="<?php echo $articleStock['nom_emplacement']; ?>">Éditer</button>
+                                data-location="<?php echo htmlspecialchars($articleStock['nom_emplacement']); ?>">
+                                Éditer
+                            </button>
                             <button class="btn btn-danger deleteArticle"
-                                data-id="<?php echo $articleStock['id_article']; ?>">Supprimer</button>
+                                data-id="<?php echo $articleStock['id_article']; ?>">
+                                Supprimer
+                            </button>
                         </td>
                     </tr>
-                <?php } ?>
+                <?php 
+                    }
+                } else {
+                    echo "<tr><td colspan='7'>Aucun article trouvé</td></tr>";
+                }
+                ?>
             </tbody>
         </table>
     </div>
@@ -351,10 +343,9 @@ if (isset($_POST['edit_article_id'])) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.3.4/dist/sweetalert2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-            // Sélectionne tous les boutons ayant la classe 'editArticle'
+        // CORRECTION: Code JavaScript amélioré
         document.querySelectorAll('.editArticle').forEach(button => {
             button.addEventListener('click', () => {
-                  // Récupère les attributs personnalisés : id, quantité et emplacement
                 const id = button.getAttribute('data-id');
                 const quantity = button.getAttribute('data-quantity');
                 const location = button.getAttribute('data-location');
@@ -362,56 +353,49 @@ if (isset($_POST['edit_article_id'])) {
                 Swal.fire({
                     title: 'Éditez l\'article',
                     html: `
-                        <input type="number" id="newQuantity" class="swal2-input" value="${quantity}" placeholder="Nouvelle quantité">
-                        <input type="text" id="newLocation" class="swal2-input" value="${location}" placeholder="Nouvel emplacement">
+                        <input type="number" id="newQuantity" class="swal2-input" value="${quantity}" placeholder="Nouvelle quantité" style="font-size: 2.5rem; padding: 1rem; margin: 1rem 0;">
+                        <input type="text" id="newLocation" class="swal2-input" value="${location}" placeholder="Nouvel emplacement" style="font-size: 2.5rem; padding: 1rem; margin: 1rem 0;">
                     `,
                     focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: 'Enregistrer',
+                    cancelButtonText: 'Annuler',
                     preConfirm: () => {
-                           // Récupère les nouvelles valeurs saisies par l'utilisateur
                         const newQuantity = document.getElementById('newQuantity').value;
                         const newLocation = document.getElementById('newLocation').value;
-                         // Vérifie que les champs ne sont pas vides
-                        if (newQuantity && newLocation) {
-                            // Retourne les nouvelles valeurs
-                            return { newQuantity, newLocation };
-                        } else {
+                        
+                        if (!newQuantity || !newLocation) {
                             Swal.showValidationMessage('Veuillez remplir tous les champs');
+                            return false;
                         }
+                        
+                        return { newQuantity, newLocation };
                     }
                 }).then((result) => {
-                        // Si l'utilisateur confirme la modification
                     if (result.isConfirmed) {
                         const { newQuantity, newLocation } = result.value;
+                        
+                        // Création du formulaire
                         const form = document.createElement('form');
-                           // Crée un formulaire pour envoyer les nouvelles données via POST
                         form.method = 'POST';
                         form.action = '';
 
-                        const idField = document.createElement('input');
-                    // Champ caché pour l'identifiant de l'article
-                        idField.type = 'hidden';
-                        idField.name = 'edit_article_id';
-                        idField.value = id;
-                        form.appendChild(idField);
+                        // Ajout des champs
+                        const fields = {
+                            'edit_article_id': id,
+                            'new_quantity': newQuantity,
+                            'new_location': newLocation
+                        };
 
-                        const quantityField = document.createElement('input');
-                        
-                    // Champ caché pour la nouvelle quantité
-                        quantityField.type = 'hidden';
-                        quantityField.name = 'new_quantity';
-                        quantityField.value = newQuantity;
-                        form.appendChild(quantityField);
-
-                        const locationField = document.createElement('input');
-                        
-                    // Champ caché pour le nouvel emplacement
-                        locationField.type = 'hidden';
-                        locationField.name = 'new_location';
-                        locationField.value = newLocation;
-                        form.appendChild(locationField);
+                        for (const [name, value] of Object.entries(fields)) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = name;
+                            input.value = value;
+                            form.appendChild(input);
+                        }
 
                         document.body.appendChild(form);
-                           // Ajoute le formulaire à la page et le soumet
                         form.submit();
                     }
                 });
@@ -419,10 +403,9 @@ if (isset($_POST['edit_article_id'])) {
         });
 
         document.querySelectorAll('.deleteArticle').forEach(button => {
-             // Sélectionne tous les boutons ayant la classe 'deleteArticle'
             button.addEventListener('click', () => {
                 const id = button.getAttribute('data-id');
-                  // Récupère l'id de l'article à supprimer
+                
                 Swal.fire({
                     title: 'Êtes-vous sûr ?',
                     text: "Cet article sera définitivement supprimé.",
@@ -433,22 +416,18 @@ if (isset($_POST['edit_article_id'])) {
                     confirmButtonText: 'Oui, supprimer!',
                     cancelButtonText: 'Annuler'
                 }).then((result) => {
-                       // Si l'utilisateur confirme la suppression
                     if (result.isConfirmed) {
                         const form = document.createElement('form');
-                         // Crée un formulaire POST pour envoyer l'id à supprimer
                         form.method = 'POST';
-                        form.action = '';// Soumis à la même page
+                        form.action = '';
 
                         const idField = document.createElement('input');
-                          // Champ caché avec l'id de l'article à supprimer
                         idField.type = 'hidden';
                         idField.name = 'delete_article_id';
                         idField.value = id;
                         form.appendChild(idField);
 
                         document.body.appendChild(form);
-                             // Ajoute le formulaire au corps de la page et le soumet
                         form.submit();
                     }
                 });
