@@ -256,7 +256,6 @@ if (isset($_GET['edit'])) {
             <th>Nom</th>
             <th>Prénom</th>
             <th>Rôle</th>
-            <th>Date de Création</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -267,7 +266,7 @@ if (isset($_GET['edit'])) {
                 <td><?= htmlspecialchars($user['nom'] ?? '') ?></td>
                 <td><?= htmlspecialchars($user['prenom'] ?? '') ?></td>
                 <td><?= htmlspecialchars($user['role'] ?? '') ?></td>
-                <td><?= htmlspecialchars($user['created_at'] ?? '') ?></td>
+               
                 <td class="actions">
                     <a href="?edit=<?= $user['id_user'] ?>">Modifier</a>
                     <a href="?delete=<?= $user['id_user'] ?>" onclick="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?')">Supprimer</a>

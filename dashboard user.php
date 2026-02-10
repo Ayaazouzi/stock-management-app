@@ -131,9 +131,9 @@ try {
         <!-- Barre latérale -->
         <div class="col-md-3 sidebar">
         <img src="logo.png">
-            <a href="dashboard.php">Dashboard</a>
-            <a href="article.php">Articles</a>
-            <a href="stock.php">Stock</a>
+            <a href="dashboard user.php">Dashboard</a>
+            <a href="article user.php">Articles</a>
+            <a href="stock user.php">Stock</a>
             <a href="page home.html">se Deconnecter</a>
         </div>
         <!-- Contenu principal -->
