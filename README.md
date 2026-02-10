@@ -371,16 +371,18 @@ CREATE TABLE user (
 
 ## 📸 Captures d'écran
 
-### Structure du projet
-![Structure](screenshots/structure.png)
 
-### Base de données
-![Database](screenshots/database.png)
 
-### Interface d'administration
-![Dashboard](screenshots/dashboard.png)
+### Dashboard
+![Structure du projet](screenshots\dashboard.png)
 
----
+### Page home
+![Database](screenshots\login admin.png)
+
+### Login Admin
+![Dashboard](screenshots\page home.png)
+
+
 
 ## 🗺️ Roadmap
 
