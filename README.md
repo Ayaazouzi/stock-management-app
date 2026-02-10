@@ -374,13 +374,14 @@ CREATE TABLE user (
 
 
 ### Dashboard
-![Structure du projet](screenshots\dashboard.png)
+![Dashboard](screenshots/dashboard.png)
 
 ### Page home
-![Database](screenshots\login admin.png)
+![Page Home](screenshots/page_home.png)
 
 ### Login Admin
-![Dashboard](screenshots\page home.png)
+![Login Admin](screenshots/login_admin.png)
+
 
 
 
