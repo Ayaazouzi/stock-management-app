@@ -120,4 +120,118 @@ Avant de commencer, assurez-vous d'avoir installé :
 - ✅ Un navigateur web moderne (Chrome, Firefox, Edge)
 
 ### Extensions PHP requises
+markdown### Extensions PHP requises
 ```ini
+extension=pdo_mysql
+extension=mbstring
+extension=zip
+extension=gd
+```
+
+---
+
+## 📥 Installation
+```bash
+# Cloner le projet
+git clone https://github.com/votre-username/stock-management-cofat.git
+cd stock-management-cofat
+
+# Installer les dépendances
+composer install
+
+# Importer la base de données dans phpMyAdmin
+# 1. Créer une base de données : cofat_stock
+# 2. Importer le fichier : database/cofat_stock.sql
+```
+
+---
+
+## ⚙️ Configuration
+
+Modifier `config/database.php` :
+```php
+<?php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'cofat_stock');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+```
+
+---
+
+## 🚀 Utilisation
+
+1. Démarrer XAMPP/WAMP
+2. Accéder à : `http://localhost/stock-management-cofat`
+3. Login par défaut : `admin@cofat.com` / `admin123`
+
+---
+
+## 📁 Structure du projet
+```
+stock-management-cofat/
+├── config/          # Configuration
+├── includes/        # Fichiers réutilisables
+├── pages/           # Pages de l'application
+├── assets/          # CSS, JS, images
+├── database/        # Scripts SQL
+└── vendor/          # Dépendances
+```
+
+---
+
+## 🗄️ Base de données
+
+**Tables principales :**
+- `articles` - Produits en stock
+- `fournisseurs` - Liste des fournisseurs
+- `employes` - Utilisateurs
+- `categories` - Catégories de produits
+- `stock` - État des stocks
+
+---
+
+## 📸 Captures d'écran
+
+*(Ajouter vos captures d'écran ici)*
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] API REST
+- [ ] Application mobile
+- [ ] Notifications par email
+- [ ] Rapports avancés
+
+---
+
+## 🤝 Contribution
+
+1. Fork le projet
+2. Créer une branche : `git checkout -b feature/nouvelle-fonctionnalite`
+3. Commit : `git commit -m 'Ajout nouvelle fonctionnalité'`
+4. Push : `git push origin feature/nouvelle-fonctionnalite`
+5. Ouvrir une Pull Request
+
+---
+
+## 📄 Licence
+
+MIT License - voir [LICENSE](LICENSE)
+
+---
+
+## 👨‍💻 Auteur
+
+**Votre Nom**
+- GitHub: [@votre-username](https://github.com/votre-username)
+- Email: votre.email@example.com
+
+---
+
+<div align="center">
+
+⭐ **Star ce projet si vous l'aimez !** ⭐
+
+</div>
