@@ -246,7 +246,7 @@ stock-management-app/
 
 ## 🗄️ Base de données
 
-**Nom de la base :** `gestion_de_stock_cofat`
+**Nom de la base :** `gestion de stock cofat`
 
 ### Tables principales
 
@@ -362,22 +362,7 @@ CREATE TABLE user (
 
 ---
 
-### Diagramme des relations
-```
-┌──────────────┐       ┌──────────────┐       ┌──────────────┐
-│  categories  │───┐   │   articles   │   ┌───│ fournisseurs │
-└──────────────┘   │   └──────────────┘   │   └──────────────┘
-                   │          │           │
-                   └──────────┴───────────┘
-                              │
-                              │ (1:N)
-                              │
-                       ┌──────┴──────┐
-                       │    stock    │
-                       └─────────────┘
-```
 
----
 
 ## 📸 Captures d'écran
 
@@ -422,10 +407,9 @@ Les contributions sont les bienvenues ! Pour contribuer :
 
 **Votre Nom**
 
-- 🐙 GitHub : [@votre-username](https://github.com/votre-username)
-- 📧 Email : votre.email@example.com
-- 💼 LinkedIn : [Votre Profil](https://linkedin.com/in/votre-profil)
-
+- 🐙 GitHub : https://github.com/Ayaazouzi
+- 📧 Email : eyaazouzi0@gmail.com
+- 💼 LinkedIn :https://www.linkedin.com/in/eya-azouzi-a5b55029b/
 ---
 
 ## 🙏 Remerciements
