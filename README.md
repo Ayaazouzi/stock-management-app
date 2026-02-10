@@ -359,6 +359,11 @@ CREATE TABLE user (
 );
 ```
 - **Fonction :** Comptes utilisateurs standards (non-admin)
+- - **Identifiants par défaut :**
+   - Nom : `doe'
+   - Prenom : `john'
+  - Password : `john123` (hashé en base)
+- 
 
 ---
 
