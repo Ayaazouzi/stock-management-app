@@ -377,10 +377,10 @@ CREATE TABLE user (
 ![Dashboard](screenshots/dashboard.png)
 
 ### Page home
-![Page Home](screenshots/page_home.png)
+![Page Home](screenshots/page home.png)
 
 ### Login Admin
-![Login Admin](screenshots/login_admin.png)
+![Login Admin](screenshots/login admin.png)
 
 
 
