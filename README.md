@@ -5,11 +5,10 @@
 ![PHP](https://img.shields.io/badge/PHP-7.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-5.7+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 **Application web complète pour la gestion des stocks et des inventaires**
 
-[Démo](#-fonctionnalités) • [Installation](#-installation) • [Documentation](#-structure-du-projet) • [Contribution](#-contribution)
+[Fonctionnalités](#-fonctionnalités) • [Installation](#-installation) • [Documentation](#-structure-du-projet) • [Contribution](#-contribution)
 
 </div>
 
@@ -29,7 +28,6 @@
 - [Captures d'écran](#-captures-décran)
 - [Roadmap](#-roadmap)
 - [Contribution](#-contribution)
-- [Licence](#-licence)
 - [Auteur](#-auteur)
 
 ---
@@ -37,6 +35,8 @@
 ## 🎯 À propos
 
 **Stock Management App** est une application web développée pour faciliter la gestion complète des stocks pour l'entreprise COFAT. Elle permet de gérer les articles, les fournisseurs, les employés, les catégories et de suivre l'état des stocks en temps réel avec des fonctionnalités d'export Excel.
+
+> 🎓 **Projet de stage de perfectionnement** - Développé dans le cadre d'un stage professionnel
 
 ### Objectifs du projet
 - ✅ Simplifier la gestion quotidienne des stocks
@@ -105,7 +105,7 @@
 - **Composer** - Gestionnaire de dépendances PHP
 
 ### Serveur local
-- **XAMPP / WAMP** - Environnement de développement local
+- **WAMP Server** - Environnement de développement local
 
 ---
 
@@ -115,12 +115,12 @@ Avant de commencer, assurez-vous d'avoir installé :
 
 - ✅ **PHP >= 7.4** ([Télécharger](https://www.php.net/downloads))
 - ✅ **MySQL >= 5.7** ou **MariaDB >= 10.2**
-- ✅ **Apache 2.4** (inclus dans XAMPP/WAMP)
+- ✅ **Apache 2.4** (inclus dans WAMP)
 - ✅ **Composer** ([Télécharger](https://getcomposer.org/download/))
+- ✅ **WAMP Server** ([Télécharger](https://www.wampserver.com/))
 - ✅ Un navigateur web moderne (Chrome, Firefox, Edge)
 
 ### Extensions PHP requises
-markdown### Extensions PHP requises
 ```ini
 extension=pdo_mysql
 extension=mbstring
@@ -131,28 +131,39 @@ extension=gd
 ---
 
 ## 📥 Installation
+
+### Étape 1 : Cloner le projet
 ```bash
-# Cloner le projet
-git clone https://github.com/votre-username/stock-management-cofat.git
-cd stock-management-cofat
-
-# Installer les dépendances
-composer install
-
-# Importer la base de données dans phpMyAdmin
-# 1. Créer une base de données : cofat_stock
-# 2. Importer le fichier : database/cofat_stock.sql
+# Cloner dans le répertoire www de WAMP
+cd C:/wamp64/www
+git clone https://github.com/votre-username/stock-management-app.git
+cd stock-management-app
 ```
+
+### Étape 2 : Installer les dépendances
+```bash
+composer install
+```
+
+### Étape 3 : Importer la base de données
+1. Démarrer **WAMP Server**
+2. Ouvrir **phpMyAdmin** : `http://localhost/phpmyadmin`
+3. Créer une nouvelle base de données : `gestion_de_stock_cofat`
+4. Importer le fichier SQL :
+   - Sélectionner la base `gestion_de_stock_cofat`
+   - Onglet **Importer**
+   - Choisir le fichier `database/database.sql`
+   - Cliquer sur **Exécuter**
 
 ---
 
 ## ⚙️ Configuration
 
-Modifier `config/database.php` :
+Modifier le fichier `connexionbase.php` :
 ```php
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'cofat_stock');
+define('DB_NAME', 'gestion_de_stock_cofat');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 ```
@@ -161,77 +172,179 @@ define('DB_PASS', '');
 
 ## 🚀 Utilisation
 
-1. Démarrer XAMPP/WAMP
-2. Accéder à : `http://localhost/stock-management-cofat`
-3. Login par défaut : `admin@cofat.com` / `admin123`
+1. **Démarrer WAMP Server** (icône verte)
+2. **Accéder à l'application** : `http://localhost/stock-management-app`
+3. **Se connecter** avec les identifiants par défaut :
+   - **Username :** `admin`
+   - **Password :** `admin123`
 
 ---
 
 ## 📁 Structure du projet
 ```
-stock-management-cofat/
-├── config/          # Configuration
-├── includes/        # Fichiers réutilisables
-├── pages/           # Pages de l'application
-├── assets/          # CSS, JS, images
-├── database/        # Scripts SQL
-└── vendor/          # Dépendances
+stock-management-app/
+│
+├── 📂 database/
+│   └── database.sql              # Script SQL de la base de données
+│
+├── 📂 vendor/                    # Dépendances Composer (PhpSpreadsheet)
+│
+├── 📄 article.php                # Gestion des articles (Admin)
+├── 📄 article_user.php           # Consultation des articles (User)
+├── 📄 categorie.php              # Gestion des catégories
+├── 📄 connexionbase.php          # Connexion à la base de données
+├── 📄 dashboard.php              # Tableau de bord administrateur
+├── 📄 dashboard_user.php         # Tableau de bord utilisateur
+├── 📄 excel.php                  # Module d'export Excel
+├── 📄 export_excel.php           # Export Excel des données
+├── 📄 fournisseur.php            # Gestion des fournisseurs
+├── 📄 generate.php               # Génération de rapports
+├── 📄 login_admin.php            # Connexion administrateur
+├── 📄 login_user.php             # Connexion utilisateur
+├── 📄 page_home.html             # Page d'accueil
+├── 📄 stock.php                  # Gestion des stocks (Admin)
+├── 📄 stock_user.php             # Consultation des stocks (User)
+├── 📄 user.php                   # Gestion des utilisateurs
+├── 📄 composer.json              # Configuration Composer
+├── 📄 composer.lock              # Verrouillage des dépendances
+├── 📄 README.md                  # Documentation du projet
+│
+└── 📂 Images/
+    ├── a.png                     # Image pour interface
+    ├── b.jpeg                    # Image pour interface
+    ├── bg.png                    # Image de fond
+    ├── c.jpeg                    # Image pour interface
+    ├── f.png                     # Image pour interface
+    ├── login-page.jpg            # Image de la page de connexion
+    ├── logo.png                  # Logo de l'application
+    ├── OIP.jpg                   # Image d'illustration
+    ├── OIP.webp                  # Image d'illustration
+    └── profile.png               # Image de profil
 ```
+
+### Description des fichiers principaux
+
+| Fichier | Description |
+|---------|-------------|
+| `connexionbase.php` | Configuration de la connexion MySQL via PDO |
+| `login_admin.php` | Authentification des administrateurs |
+| `login_user.php` | Authentification des utilisateurs standards |
+| `dashboard.php` | Tableau de bord avec statistiques pour admin |
+| `dashboard_user.php` | Tableau de bord pour utilisateurs standards |
+| `article.php` | CRUD complet des articles (admin) |
+| `article_user.php` | Consultation des articles (user) |
+| `stock.php` | Gestion des stocks et emplacements |
+| `stock_user.php` | Consultation des stocks (user) |
+| `categorie.php` | Gestion des catégories de produits |
+| `fournisseur.php` | Gestion des fournisseurs |
+| `user.php` | Gestion des comptes utilisateurs |
+| `export_excel.php` | Export des données en Excel |
+| `generate.php` | Génération de rapports personnalisés |
+| `page_home.html` | Page d'accueil de l'application |
 
 ---
 
 ## 🗄️ Base de données
 
-**Tables principales :**
-- `articles` - Produits en stock
-- `fournisseurs` - Liste des fournisseurs
-- `employes` - Utilisateurs
-- `categories` - Catégories de produits
-- `stock` - État des stocks
+**Nom de la base :** `gestion_de_stock_cofat`
+
+### Tables principales
+
+| Table | Description |
+|-------|-------------|
+| `admin` | Administrateurs du système |
+| `categories` | Catégories de produits |
+| `fournisseurs` | Liste des fournisseurs |
+| `stock` | État des stocks |
+| `user` | Utilisateurs standards |
+
+### Schéma des tables
+
+#### Table : `admin`
+- Gestion des comptes administrateurs
+- Username : `admin`
+- Password : `admin123` (hashé)
+
+#### Table : `categories`
+- Organisation des produits par catégories
+- Champs : id, nom_categorie, description
+
+#### Table : `fournisseurs`
+- Informations des fournisseurs
+- Champs : id, nom, téléphone, email, adresse
+
+#### Table : `stock`
+- Suivi des stocks en temps réel
+- Champs : id, article, quantité, emplacement, date_maj
+
+#### Table : `user`
+- Comptes utilisateurs standards
+- Champs : id, username, password, role
 
 ---
 
 ## 📸 Captures d'écran
 
-*(Ajouter vos captures d'écran ici)*
+### Structure du projet
+![Structure](screenshots/structure.png)
+
+### Base de données
+![Database](screenshots/database.png)
+
+### Interface d'administration
+![Dashboard](screenshots/dashboard.png)
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] API REST
-- [ ] Application mobile
-- [ ] Notifications par email
-- [ ] Rapports avancés
+### Améliorations futures
+- [ ] 🔐 Système de récupération de mot de passe
+- [ ] 📱 Version mobile responsive
+- [ ] 📊 Rapports statistiques avancés
+- [ ] 🔔 Notifications en temps réel
+- [ ] 📤 Export PDF des rapports
+- [ ] 🌐 API REST pour intégrations
+- [ ] 🔄 Gestion des mouvements de stock (entrées/sorties)
+- [ ] 📧 Alertes email pour stocks bas
 
 ---
 
 ## 🤝 Contribution
 
-1. Fork le projet
-2. Créer une branche : `git checkout -b feature/nouvelle-fonctionnalite`
-3. Commit : `git commit -m 'Ajout nouvelle fonctionnalité'`
-4. Push : `git push origin feature/nouvelle-fonctionnalite`
-5. Ouvrir une Pull Request
+Les contributions sont les bienvenues ! Pour contribuer :
 
----
-
-## 📄 Licence
-
-MIT License - voir [LICENSE](LICENSE)
+1. **Fork** le projet
+2. **Créer une branche** : `git checkout -b feature/amelioration`
+3. **Commit** : `git commit -m 'Ajout d'une fonctionnalité'`
+4. **Push** : `git push origin feature/amelioration`
+5. **Ouvrir une Pull Request**
 
 ---
 
 ## 👨‍💻 Auteur
 
 **Votre Nom**
-- GitHub: [@votre-username](https://github.com/votre-username)
-- Email: votre.email@example.com
+
+- 🐙 GitHub : [@votre-username](https://github.com/votre-username)
+- 📧 Email : votre.email@example.com
+- 💼 LinkedIn : [Votre Profil](https://linkedin.com/in/votre-profil)
+
+---
+
+## 🙏 Remerciements
+
+- Entreprise COFAT pour l'opportunité de stage
+- [Bootstrap](https://getbootstrap.com/) pour le framework CSS
+- [PhpSpreadsheet](https://github.com/PHPOffice/PhpSpreadsheet) pour l'export Excel
+- [SweetAlert2](https://sweetalert2.github.io/) pour les notifications
 
 ---
 
 <div align="center">
 
-⭐ **Star ce projet si vous l'aimez !** ⭐
+**⭐ Si ce projet vous a été utile, n'hésitez pas à lui donner une étoile ! ⭐**
+
+*Projet de stage de perfectionnement - COFAT 2024*
 
 </div>
