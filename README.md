@@ -363,7 +363,7 @@ CREATE TABLE user (
    - Nom : `doe'
    - Prenom : `john'
   - Password : `john123` (hashé en base)
-- 
+
 
 ---
 
