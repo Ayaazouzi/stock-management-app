@@ -250,36 +250,132 @@ stock-management-app/
 
 ### Tables principales
 
-| Table | Description |
-|-------|-------------|
-| `admin` | Administrateurs du système |
-| `categories` | Catégories de produits |
-| `fournisseurs` | Liste des fournisseurs |
-| `stock` | État des stocks |
-| `user` | Utilisateurs standards |
+| Table | Description | Nombre de lignes |
+|-------|-------------|------------------|
+| `admin` | Administrateurs du système | - |
+| `articles` | Liste complète des articles | - |
+| `categories` | Catégories de produits | - |
+| `fournisseurs` | Liste des fournisseurs | - |
+| `stock` | État des stocks par emplacement | - |
+| `user` | Utilisateurs standards | - |
 
-### Schéma des tables
+### Schéma détaillé des tables
 
 #### Table : `admin`
-- Gestion des comptes administrateurs
-- Username : `admin`
-- Password : `admin123` (hashé)
+```sql
+CREATE TABLE admin (
+    id_admin INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100),
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+- **Identifiants par défaut :**
+  - Username : `admin`
+  - Password : `admin123` (hashé en base)
+
+---
+
+#### Table : `articles`
+```sql
+CREATE TABLE articles (
+    id_article INT PRIMARY KEY AUTO_INCREMENT,
+    nom_article VARCHAR(255) NOT NULL,
+    description TEXT,
+    prix_unitaire DECIMAL(10, 2) NOT NULL,
+    quantite_stock INT DEFAULT 0,
+    id_categorie INT,
+    id_fournisseur INT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date_modification TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_categorie) REFERENCES categories(id_categorie),
+    FOREIGN KEY (id_fournisseur) REFERENCES fournisseurs(id_fournisseur)
+);
+```
+- **Fonction :** Stockage de tous les produits avec leurs détails
+- **Relations :** Liée aux tables `categories` et `fournisseurs`
+
+---
 
 #### Table : `categories`
-- Organisation des produits par catégories
-- Champs : id, nom_categorie, description
+```sql
+CREATE TABLE categories (
+    id_categorie INT PRIMARY KEY AUTO_INCREMENT,
+    nom_categorie VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+- **Fonction :** Classification des articles par catégories
+
+---
 
 #### Table : `fournisseurs`
-- Informations des fournisseurs
-- Champs : id, nom, téléphone, email, adresse
+```sql
+CREATE TABLE fournisseurs (
+    id_fournisseur INT PRIMARY KEY AUTO_INCREMENT,
+    nom_fournisseur VARCHAR(255) NOT NULL,
+    telephone VARCHAR(20),
+    email VARCHAR(255),
+    adresse TEXT,
+    ville VARCHAR(100),
+    pays VARCHAR(100),
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+- **Fonction :** Gestion des informations fournisseurs
+
+---
 
 #### Table : `stock`
-- Suivi des stocks en temps réel
-- Champs : id, article, quantité, emplacement, date_maj
+```sql
+CREATE TABLE stock (
+    id_stock INT PRIMARY KEY AUTO_INCREMENT,
+    id_article INT NOT NULL,
+    emplacement VARCHAR(255) NOT NULL,
+    quantite INT DEFAULT 0,
+    seuil_alerte INT DEFAULT 10,
+    date_maj TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_article) REFERENCES articles(id_article) ON DELETE CASCADE
+);
+```
+- **Fonction :** Suivi des stocks par emplacement
+- **Emplacements :** Entrepôt Principal, Magasin Tunis, Magasin Sfax, etc.
+
+---
 
 #### Table : `user`
-- Comptes utilisateurs standards
-- Champs : id, username, password, role
+```sql
+CREATE TABLE user (
+    id_user INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    nom VARCHAR(100),
+    prenom VARCHAR(100),
+    email VARCHAR(100),
+    role ENUM('employe', 'gestionnaire') DEFAULT 'employe',
+    date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+- **Fonction :** Comptes utilisateurs standards (non-admin)
+
+---
+
+### Diagramme des relations
+```
+┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│  categories  │───┐   │   articles   │   ┌───│ fournisseurs │
+└──────────────┘   │   └──────────────┘   │   └──────────────┘
+                   │          │           │
+                   └──────────┴───────────┘
+                              │
+                              │ (1:N)
+                              │
+                       ┌──────┴──────┐
+                       │    stock    │
+                       └─────────────┘
+```
 
 ---
 
